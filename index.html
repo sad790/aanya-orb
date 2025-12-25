@@ -494,115 +494,93 @@
         
 
 
-       // ==================================
-       // 🎤 AANYA LIVEKIT CONNECT LOGIC
-       // ==================================
+// ==================================
+// 🎤 AANYA LIVEKIT + MIC FINAL FIX
+// ==================================
 
-       const { Room, createLocalAudioTrack } = LivekitClient;
+const micBtn = document.getElementById("micBtnSide");
+const micStatus = document.getElementById("mic-status");
 
-       let room = null;
-       let micTrack = null;
+const { Room, createLocalAudioTrack } = LivekitClient;
 
-       async function connectToAanya() {
-           try {
-               const res = await fetch(TOKEN_ENDPOINT);
-               const data = await res.json();
-               const token = data.token;
+let room = null;
+let micTrack = null;
+let connecting = false;
 
-               room = new Room({
-                   adaptiveStream: true,
-                   dynacast: true,
-               });
+async function connectToAanya() {
+    if (room || connecting) return;
+    connecting = true;
 
-               // 🔥 expose room to browser console (debugging)
-               window.room = room;
+    try {
+        const res = await fetch(TOKEN_ENDPOINT);
+        const data = await res.json();
 
-               // 👤 agent join log
-               room.on("participantConnected", (p) => {
-                   console.log("👤 Participant joined:", p.identity);
-               });
-
-               // 🔊 PLAY AANYA AUDIO
-               room.on("trackSubscribed", (track) => {
-                   if (track.kind === "audio") {
-                       const audioEl = document.createElement("audio");
-                       audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
-                       audioEl.autoplay = true;
-                       audioEl.muted = false;
-
-                       // 🔥 REQUIRED FOR MOBILE
-                       audioEl.playsInline = true;
-                       audioEl.setAttribute("playsinline", "true");
-
-                       document.body.appendChild(audioEl);
-
-                       audioEl.play().catch(err => {
-                           console.warn("🔕 Autoplay blocked:", err);
-                       });
-
-                       console.log("🔊 Aanya audio connected");
-                  }
-               });
-
-               await room.connect(LIVEKIT_URL, token);
-
-               // 🎤 mic publish
-               
-               document.getElementById("overlay-text").innerText = "AANYA ONLINE";
-               console.log("✅ Connected to LiveKit");
-
-           } catch (e) {
-               console.error("❌ LiveKit Error:", e);
-               document.getElementById("overlay-text").innerText = "ERROR";
-           }    
-       }
-
-       // 👆 USER GESTURE REQUIRED
-       document.body.addEventListener("click", () => {
-           if (!room) {
-               console.log("🖱️ Connecting to Aanya...");
-               connectToAanya();
-           }
+        room = new Room({
+            adaptiveStream: true,
+            dynacast: true,
         });
 
+        window.room = room;
 
-        // ==================================
-        // 🎤 MIC ON / OFF BUTTON LOGIC
-        // ==================================
-
-        micBtn.onclick = async () => {
-            if (!room) {
-                alert("Connect to Aanya first");
-                return;
+        room.on("trackSubscribed", (track) => {
+            if (track.kind === "audio") {
+                const audioEl = document.createElement("audio");
+                audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
+                audioEl.autoplay = true;
+                audioEl.playsInline = true;
+                document.body.appendChild(audioEl);
+                audioEl.play().catch(() => {});
+                console.log("🔊 Aanya audio connected");
             }
+        });
 
-            // 🔥 FIRST TIME MIC REQUEST
-            if (!micTrack) {
-                try {
-                    micTrack = await createLocalAudioTrack();
-                    await room.localParticipant.publishTrack(micTrack);
-                    micStatus.innerText = "MIC: ON";
-                    micBtn.classList.add("active-state");
-                    console.log("🎤 Mic permission granted");
-                    return;
-                } catch (e) {
-                    console.error("❌ Mic permission denied", e);
-                    alert("Mic permission denied");
-                    return;
-                }
-            }
+        await room.connect(LIVEKIT_URL, data.token);
+        document.getElementById("overlay-text").innerText = "AANYA ONLINE";
+        console.log("✅ Connected to LiveKit");
 
-            // 🔁 TOGGLE
-            if (micTrack.isMuted) {
-                micTrack.unmute();
-                micStatus.innerText = "MIC: ON";
-                micBtn.classList.add("active-state");
-             } else {
-                micTrack.mute();
-                micStatus.innerText = "MIC: OFF";
-                micBtn.classList.remove("active-state");
-             }
-        };
+    } catch (e) {
+        console.error("❌ LiveKit error:", e);
+    }
+}
+
+// 🔥 FIRST user gesture = connect
+document.body.addEventListener("click", () => {
+    if (!room) connectToAanya();
+}, { once: true });
+
+// 🎤 MIC BUTTON
+micBtn.onclick = async (e) => {
+    e.stopPropagation();
+
+    if (!room) {
+        alert("Connect first");
+        return;
+    }
+
+    if (!micTrack) {
+        try {
+            micTrack = await createLocalAudioTrack();
+            await room.localParticipant.publishTrack(micTrack);
+            micStatus.innerText = "MIC: ON";
+            micBtn.classList.add("active-state");
+            console.log("🎤 Mic permission granted");
+            return;
+        } catch {
+            alert("Mic permission denied");
+            return;
+        }
+    }
+
+    if (micTrack.isMuted) {
+        micTrack.unmute();
+        micStatus.innerText = "MIC: ON";
+        micBtn.classList.add("active-state");
+    } else {
+        micTrack.mute();
+        micStatus.innerText = "MIC: OFF";
+        micBtn.classList.remove("active-state");
+    }
+};
 
         
     </script>

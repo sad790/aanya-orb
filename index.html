@@ -485,45 +485,40 @@
 
 
         // ==================================
-// 🎤 AANYA LIVEKIT CONNECT LOGIC
-// ==================================
+        // 🎤 AANYA LIVEKIT CONNECT LOGIC
+        // ==================================
 
-let room;
-let micTrack = null;
+        let room;
+        let micTrack = null;
 
-async function connectToAanya() {
-    try {
-        const res = await fetch(TOKEN_ENDPOINT);
-        const data = await res.json();
-        const token = data.token;
+        async function connectToAanya() {
+            try {
+                const res = await fetch(TOKEN_ENDPOINT);
+                const data = await res.json();
+                const token = data.token;
 
-        room = new LivekitClient.Room({
-            adaptiveStream: true,
-            dynacast: true,
-        });
+                room = new LivekitClient.Room({
+                    adaptiveStream: true,
+                    dynacast: true,
+                });
 
-        await room.connect(LIVEKIT_URL, token);
+                await room.connect(LIVEKIT_URL, token);
 
-        micTrack = await LivekitClient.createLocalAudioTrack();
-        await room.localParticipant.publishTrack(micTrack);
+                micTrack = await LivekitClient.createLocalAudioTrack();
+                await room.localParticipant.publishTrack(micTrack);
 
-        document.getElementById("overlay-text").innerText = "AANYA ONLINE";
+                document.getElementById("overlay-text").innerText = "AANYA ONLINE";
 
-    } catch (e) {
-        console.error(e);
-        document.getElementById("overlay-text").innerText = "ERROR";
-    }
-}
+            } catch (e) {
+                console.error(e);
+                document.getElementById("overlay-text").innerText = "ERROR";
+            }
+        }
 
-document.body.addEventListener("click", () => {
-    if (!room) connectToAanya();
-}, { once: true });
-
+        document.body.addEventListener("click", () => {
+            if (!room) connectToAanya();
+        }, { once: true });
 
     </script>
-    <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js">
-    
-    </script>
-    
 </body>
 </html>

@@ -105,6 +105,49 @@
             z-index: 150;
         }
         video { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.1) contrast(1.1); opacity: 0.7; }
+        
+        /* ================================
+   🔴 CLEAN NEON RED SHUTDOWN BUTTON
+================================ */
+
+#shutdownBtnSide {
+    border-left: 2px solid #ff1a1a;
+    background: rgba(255, 0, 0, 0.05);
+    box-shadow:
+        0 0 4px rgba(255, 0, 0, 0.35),
+        inset 0 0 6px rgba(255, 0, 0, 0.25);
+}
+
+/* RIGHT HUD SUPPORT */
+.right-column #shutdownBtnSide {
+    border-right: 2px solid #ff1a1a;
+}
+
+/* HOVER – SOFT GLOW ONLY */
+#shutdownBtnSide:hover {
+    background: rgba(255, 0, 0, 0.12);
+    box-shadow:
+        0 0 10px rgba(255, 0, 0, 0.55),
+        inset 0 0 8px rgba(255, 0, 0, 0.35);
+}
+
+/* LABEL (SYSTEM) */
+#shutdownBtnSide .hud-label {
+    color: #ff6b6b;
+    font-size: 0.5em;   /* slightly smaller */
+    letter-spacing: 0.25em;
+}
+
+/* VALUE (SHUTDOWN TEXT) */
+#shutdownBtnSide .hud-value {
+    color: #ffffff;
+    font-size: 0.65em;   /* 🔥 smaller shutdown text */
+    text-shadow:
+        0 0 4px #ff1a1a,
+        0 0 10px #ff1a1a;
+}
+
+   
     </style>
 </head>
 <body>
@@ -146,8 +189,12 @@
                 <div id="temp-val" class="hud-value">--°C</div>
             </div>
             <div class="hud-item">
-                <div class="hud-label">Battery percentage</div>
+                <div class="hud-label">Battery %</div>
                 <div id="battery-val" class="hud-value">--%</div>
+            </div>
+            <div class="hud-item clickable" id="shutdownBtnSide">
+                <div class="hud-label">SYSTEM</div>
+                <div class="hud-value">SHUTDOWN</div>
             </div>
         </div>
     </div>
@@ -548,7 +595,7 @@ document.body.addEventListener("click", () => {
     if (!room) connectToAanya();
 }, { once: true });
 
-// 🎤 MIC BUTTON
+// 🎤 MIC BUTTON (FINAL – AANYA RESPONSE FIX)
 micBtn.onclick = async (e) => {
     e.stopPropagation();
 
@@ -557,20 +604,34 @@ micBtn.onclick = async (e) => {
         return;
     }
 
+    // 🔥 FIRST TIME MIC
     if (!micTrack) {
         try {
-            micTrack = await createLocalAudioTrack();
+            micTrack = await createLocalAudioTrack({
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            });
+
             await room.localParticipant.publishTrack(micTrack);
+
+            // 🔑 THIS LINE IS THE KEY
+            await room.localParticipant.setMicrophoneEnabled(true);
+
             micStatus.innerText = "MIC: ON";
             micBtn.classList.add("active-state");
-            console.log("🎤 Mic permission granted");
+
+            console.log("🎤 Mic LIVE – Aanya can hear you");
             return;
-        } catch {
+
+        } catch (err) {
+            console.error(err);
             alert("Mic permission denied");
             return;
         }
     }
 
+    // 🔁 TOGGLE MIC
     if (micTrack.isMuted) {
         micTrack.unmute();
         micStatus.innerText = "MIC: ON";
@@ -582,7 +643,56 @@ micBtn.onclick = async (e) => {
     }
 };
 
-        
+   // ==================================
+// 🔴 AANYA SHUTDOWN / DISCONNECT LOGIC
+// ==================================
+
+const shutdownBtn = document.getElementById("shutdownBtnSide");
+
+shutdownBtn.onclick = async (e) => {
+    e.stopPropagation();
+
+    console.log("🔴 Shutting down Aanya...");
+
+    // 🎤 MIC OFF
+    if (micTrack) {
+        micTrack.stop();
+        micTrack = null;
+        micStatus.innerText = "MIC: OFF";
+        micBtn.classList.remove("active-state");
+    }
+
+    // 📷 CAMERA OFF
+    if (camStream) {
+        camStream.getTracks().forEach(t => t.stop());
+        camStream = null;
+        document.getElementById("cam-status").innerText = "CAM: OFF";
+        document.getElementById("camBtnSide").classList.remove("active-state");
+        document.getElementById("camera-feed-container").style.display = "none";
+    }
+
+    // 🔊 REMOVE ALL AUDIO ELEMENTS
+    document.querySelectorAll("audio").forEach(a => {
+        a.pause();
+        a.srcObject = null;
+        a.remove();
+    });
+
+    // 🌐 LIVEKIT DISCONNECT
+    if (room) {
+        room.disconnect();
+        room = null;
+    }
+
+    // 🔄 RESET FLAGS
+    connecting = false;
+
+    // 🧠 UI RESET
+    document.getElementById("overlay-text").innerText = "AANYA OFFLINE";
+
+    console.log("✅ Aanya fully shutdown");
+};
+
     </script>
     
 </body>

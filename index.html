@@ -122,10 +122,6 @@
                 <div class="hud-label">Visual Link</div>
                 <div id="cam-status" class="hud-value">CAM: OFF</div>
             </div>
-            <div id="micBtnSide" class="hud-item clickable">
-                <div class="hud-label">Voice Link</div>
-                <div id="mic-status" class="hud-value">MIC: OFF</div>
-            </div>
             <div class="hud-item">
                 <div class="hud-label">Downlink</div>
                 <div id="dl-val" class="hud-value">0.0 MB/S</div>
@@ -491,8 +487,6 @@
         setInterval(updateHUD, 1000);
         updateHUD();
 
-        
-
 
        // ==================================
        // 🎤 AANYA LIVEKIT CONNECT LOGIC
@@ -567,35 +561,8 @@
            }
         });
 
-
-        // ==================================
-        // 🎤 MIC ON / OFF BUTTON LOGIC
-        // ==================================
-
-        const micBtn = document.getElementById("micBtnSide");
-        const micStatus = document.getElementById("mic-status");
-
-        micBtn.onclick = () => {
-            if (!micTrack) {
-                console.warn("⚠️ Mic not ready yet");
-                return;
-            }
-
-            if (micTrack.isMuted) {
-                micTrack.unmute();
-                micStatus.innerText = "MIC: ON";
-                micBtn.classList.add("active-state");
-                console.log("🎤 Mic ON");
-            } else {
-                micTrack.mute();
-                micStatus.innerText = "MIC: OFF";
-                micBtn.classList.remove("active-state");
-                console.log("🔇 Mic OFF");
-            }
-        };
-
         
-    </script>
+      </script>
     
 </body>
 </html>

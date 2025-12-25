@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>orion AI - Energy Core</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+            position: relative;
+            font-family: 'Orbitron', sans-serif;
+            color: #33ffff;
+        }
+        canvas {
+            display: block;
+        }
+
+        /* --- SURGICAL HUD SYSTEM --- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 50px;
+            box-sizing: border-box;
+            font-size: 0.75em;
+            letter-spacing: 2px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .top-item {
+            background: rgba(0, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            padding: 5px 15px;
+            border-bottom: 1px solid rgba(51, 255, 255, 0.3);
+        }
+
+        #overlay-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #33ffff;
+            font-size: 1em;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 15px #00aaff, 0 0 35px #00aaff, 0 0 60px #00ffff, 0 0 100px #00ffff;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-container {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            padding: 0 4%;
+            box-sizing: border-box;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-column { display: flex; flex-direction: column; gap: 20px; pointer-events: auto; }
+        
+        .hud-item {
+            display: inline-block;
+            background: rgba(0, 255, 255, 0.02);
+            padding: 8px 15px;
+            backdrop-filter: blur(4px);
+            border-left: 2px solid #33ffff;
+            transition: 0.3s ease;
+            width: fit-content;
+        }
+
+        .hud-item.clickable { cursor: pointer; }
+        .hud-item.clickable:hover { background: rgba(0, 255, 255, 0.1); }
+        .hud-item.active-state { border-left-color: #ffffff; background: rgba(0, 255, 255, 0.15); }
+
+        .right-column { align-items: flex-end; }
+        .right-column .hud-item { border-left: none; border-right: 2px solid #33ffff; text-align: right; }
+        
+        .hud-label { font-size: 0.55em; color: #00aaff; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8; }
+        .hud-value { font-size: 1em; text-shadow: 0 0 8px #00ffff; }
+
+        /* --- CAMERA NEURAL SIGHT --- */
+        #camera-feed-container {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 200px;
+            height: 120px;
+            border: 1px solid rgba(51, 255, 255, 0.5);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            overflow: hidden;
+            z-index: 150;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.1) contrast(1.1); opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-item" id="date-display">-- / -- / ----</div>
+        <div class="top-item" id="time-display">00:00:00</div>
+    </div>
+
+    <div id="overlay-text">AANYA</div>
+
+    <div class="hud-container">
+        <div class="hud-column left-column">
+            <div id="camBtnSide" class="hud-item clickable">
+                <div class="hud-label">Visual Link</div>
+                <div id="cam-status" class="hud-value">CAM: OFF</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Downlink</div>
+                <div id="dl-val" class="hud-value">0.0 MB/S</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Uplink</div>
+                <div id="ul-val" class="hud-value">0.0 MB/S</div>
+            </div>
+        </div>
+
+        <div class="hud-column right-column">
+            <div class="hud-item">
+                <div class="hud-label">Neural Load</div>
+                <div id="cpu-val" class="hud-value">--%</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Core Temp</div>
+                <div id="temp-val" class="hud-value">--°C</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Battery percentage</div>
+                <div id="battery-val" class="hud-value">--%</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="camera-feed-container">
+        <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
+
+
+        
+        let scene, camera, renderer, composer;
+        let particles, particleData, energyArcs, centralCore;
+        let contentGroup; // Group for all visual elements for parallax effect
+        let mouse = new THREE.Vector2();
+        const totalParticles = 30000;
+        const noise = new SimplexNoise();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 25;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            
+            contentGroup = new THREE.Group();
+            scene.add(contentGroup);
+
+            // Post-processing for glow effect
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0;
+            bloomPass.strength = 1.5; // Intensified glow strength
+            bloomPass.radius = 0.5;
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            createParticles();
+            createEnergyArcs();
+            createCentralCore();
+
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+        }
+
+        function createParticles() {
+            const particlesGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(totalParticles * 3);
+            const colors = new Float32Array(totalParticles * 3);
+            particleData = [];
+
+            const color1 = new THREE.Color(0x00ffff); // Cyan
+            const color2 = new THREE.Color(0x1f51ff); // Light Blue
+
+            for (let i = 0; i < totalParticles; i++) {
+                const radius = 2 + Math.random() * 10;
+                const phi = Math.random() * Math.PI * 2;
+                const theta = Math.acos((Math.random() - 0.5) * 1.5);
+
+                const x = radius * Math.sin(theta) * Math.cos(phi);
+                const y = radius * Math.sin(theta) * Math.sin(phi);
+                const z = radius * Math.cos(theta);
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                const mixedColor = color1.clone().lerp(color2, Math.random());
+                colors[i * 3] = mixedColor.r;
+                colors[i * 3 + 1] = mixedColor.g;
+                colors[i * 3 + 2] = mixedColor.b;
+
+                particleData.push({
+                    position: new THREE.Vector3(x, y, z),
+                    velocity: new THREE.Vector3(),
+                    basePosition: new THREE.Vector3(x, y, z)
+                });
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.8
+            });
+            particles = new THREE.Points(particlesGeometry, particleMaterial);
+            contentGroup.add(particles);
+        }
+
+        function createEnergyArcs() {
+            energyArcs = new THREE.Group();
+            const arcCount = 40; // Increased arc count
+            const color1 = new THREE.Color(0x00ffff);
+            const color2 = new THREE.Color(0x00aaff);
+
+            for (let i = 0; i < arcCount; i++) {
+                const startRadius = 4 + Math.random() * 10;
+                const endRadius = startRadius + 3 + Math.random() * 6;
+
+                const startAngle = Math.random() * Math.PI * 2;
+                const endAngle = startAngle + Math.PI * (0.8 + Math.random() * 0.8); // Longer arcs
+
+                // More dramatic curves
+                const midRadius1 = (startRadius + endRadius) / 2 + (Math.random() - 0.5) * 8;
+                const midRadius2 = (startRadius + endRadius) / 2 + (Math.random() - 0.5) * 8;
+                const midAngle1 = startAngle + (endAngle - startAngle) * 0.33;
+                const midAngle2 = startAngle + (endAngle - startAngle) * 0.66;
+                
+                const midZ1 = (Math.random() - 0.5) * 10;
+                const midZ2 = (Math.random() - 0.5) * 10;
+
+                const curve = new THREE.CubicBezierCurve3(
+                    new THREE.Vector3(startRadius * Math.cos(startAngle), startRadius * Math.sin(startAngle), (Math.random() - 0.5) * 8),
+                    new THREE.Vector3(midRadius1 * Math.cos(midAngle1), midRadius1 * Math.sin(midAngle1), midZ1),
+                    new THREE.Vector3(midRadius2 * Math.cos(midAngle2), midRadius2 * Math.sin(midAngle2), midZ2),
+                    new THREE.Vector3(endRadius * Math.cos(endAngle), endRadius * Math.sin(endAngle), (Math.random() - 0.5) * 8)
+                );
+
+                const tubeRadius = 0.03; // Thinner arcs
+                const geometry = new THREE.TubeGeometry(curve, 64, tubeRadius, 8, false);
+                const mixedColor = color1.clone().lerp(color2, Math.random());
+                
+                const baseOpacity = 0.1 + Math.random() * 0.25;
+                const material = new THREE.MeshBasicMaterial({
+                    color: mixedColor,
+                    transparent: true,
+                    opacity: baseOpacity,
+                    blending: THREE.AdditiveBlending
+                });
+                const arc = new THREE.Mesh(geometry, material);
+                
+                arc.userData.baseOpacity = baseOpacity;
+                arc.userData.flickerSpeed = Math.random() * 2 + 1; // For flickering effect
+
+                arc.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                arc.userData.rotationSpeed = new THREE.Vector3((Math.random() - 0.5) * 0.005, (Math.random() - 0.5) * 0.005, (Math.random() - 0.5) * 0.005);
+                energyArcs.add(arc);
+            }
+            contentGroup.add(energyArcs);
+        }
+        
+        function createCentralCore() {
+            centralCore = new THREE.Group();
+            const coreGeo = new THREE.SphereGeometry(1.5, 32, 32);
+            const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+            centralCore.add(coreMesh);
+            contentGroup.add(centralCore);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onMouseDown() {
+             const shockwaveStrength = 0.5;
+             particleData.forEach(p => {
+                const directionFromCenter = p.position.clone().normalize();
+                p.velocity.add(directionFromCenter.multiplyScalar(shockwaveStrength));
+            });
+        }
+        
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.0005;
+            const positions = particles.geometry.attributes.position.array;
+            
+            const pullStrength = 0.0002;
+            const noiseScale = 0.1;
+            const noiseSpeed = 0.005;
+            const noiseScale2 = 0.8;
+            const noiseSpeed2 = 0.02;
+            const orbitStrength = 0.004;
+            const maxRadius = 16; 
+            const containmentStrength = 0.01;
+            const orbitAxis = new THREE.Vector3(0, 0, 1);
+
+            for (let i = 0; i < totalParticles; i++) {
+                const p = particleData[i];
+                if (p) {
+                    const i3 = i * 3;
+                    const pos = p.position;
+
+                    const noiseVecX1 = noise.noise3d(pos.x * noiseScale, pos.y * noiseScale, time * noiseSpeed) * noiseSpeed;
+                    const noiseVecY1 = noise.noise3d(pos.y * noiseScale, pos.z * noiseScale, time * noiseSpeed) * noiseSpeed;
+                    const noiseVecZ1 = noise.noise3d(pos.z * noiseScale, pos.x * noiseScale, time * noiseSpeed) * noiseSpeed;
+                    const noiseForce1 = new THREE.Vector3(noiseVecX1, noiseVecY1, noiseVecZ1);
+                    
+                    const noiseVecX2 = noise.noise3d(pos.x * noiseScale2 + 100, pos.y * noiseScale2, time * noiseSpeed2) * noiseSpeed2 * 0.25;
+                    const noiseVecY2 = noise.noise3d(pos.y * noiseScale2 + 200, pos.z * noiseScale2, time * noiseSpeed2) * noiseSpeed2 * 0.25;
+                    const noiseVecZ2 = noise.noise3d(pos.z * noiseScale2 + 300, pos.x * noiseScale2, time * noiseSpeed2) * noiseSpeed2 * 0.25;
+                    const noiseForce2 = new THREE.Vector3(noiseVecX2, noiseVecY2, noiseVecZ2);
+
+                    const pullForce = pos.clone().negate().normalize().multiplyScalar(pullStrength * pos.length() * 0.1);
+                    const orbitForce = new THREE.Vector3().crossVectors(pos, orbitAxis).normalize().multiplyScalar(orbitStrength);
+
+                    p.velocity.add(noiseForce1).add(noiseForce2).add(pullForce).add(orbitForce);
+
+                    const distSq = pos.lengthSq();
+                    if (distSq > maxRadius * maxRadius) {
+                        const dist = Math.sqrt(distSq);
+                        const containmentForce = pos.clone().normalize().multiplyScalar(-(dist - maxRadius) * containmentStrength);
+                        p.velocity.add(containmentForce);
+                    }
+
+                    p.velocity.multiplyScalar(0.98);
+                    pos.add(p.velocity);
+
+                    positions[i3] = pos.x;
+                    positions[i3 + 1] = pos.y;
+                    positions[i3 + 2] = pos.z;
+                }
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
+            
+            energyArcs.children.forEach(arc => {
+                // Rotation
+                arc.rotation.x += arc.userData.rotationSpeed.x;
+                arc.rotation.y += arc.userData.rotationSpeed.y;
+                arc.rotation.z += arc.userData.rotationSpeed.z;
+
+                // Opacity flicker to make it look more like energy
+                const flicker = (Math.sin(time * arc.userData.flickerSpeed) + 1) / 2; // value between 0 and 1
+                arc.material.opacity = arc.userData.baseOpacity * flicker;
+            });
+
+            const pulse = 1 + Math.sin(time * 2.5) * 0.1; // Faster "breathing" effect
+            centralCore.scale.set(pulse, pulse, pulse);
+            
+            camera.position.x = Math.sin(time * 0.2) * 5;
+            camera.position.y = Math.sin(time * 0.3) * 3;
+            camera.position.z = 25 + Math.cos(time * 0.2) * 5;
+            camera.lookAt(scene.position);
+            
+            // Parallax effect
+            contentGroup.rotation.y += (mouse.x * 0.2 - contentGroup.rotation.y) * 0.02;
+            contentGroup.rotation.x += (mouse.y * 0.2 - contentGroup.rotation.x) * 0.02;
+
+
+            composer.render();
+        }
+
+        init();
+        animate();
+
+        // 🌟 ESC key closes orb manually
+        document.addEventListener("keydown", (event) => {
+            if(event.key === "Escape"){
+                window.close(); // closes the orb window
+            }
+        });
+
+        // 🌟 Optional pulse simulation
+        let pulseScale = 1;
+        let growing = true;
+        function pulseOrb() {
+            pulseScale += growing ? 0.005 : -0.005;
+            if (pulseScale > 1.15) growing = false;
+            if (pulseScale < 0.85) growing = true;
+            centralCore.scale.set(pulseScale, pulseScale, pulseScale);
+            requestAnimationFrame(pulseOrb);
+        }
+        pulseOrb();
+
+        /* --- HARDWARE & HUD LOGIC --- */
+        let camStream = null;
+        async function toggleCamera() {
+            const btnItem = document.getElementById('camBtnSide');
+            const statusVal = document.getElementById('cam-status');
+            const feed = document.getElementById('camera-feed-container');
+            const video = document.getElementById('webcam');
+            if (!camStream) {
+                try {
+                    camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = camStream;
+                    statusVal.innerText = "CAM: ON";
+                    btnItem.classList.add('active-state');
+                    feed.style.display = "block";
+                } catch (e) { console.error("Camera access denied"); }
+            } else {
+                camStream.getTracks().forEach(track => track.stop());
+                camStream = null; video.srcObject = null;
+                statusVal.innerText = "CAM: OFF";
+                btnItem.classList.remove('active-state');
+                feed.style.display = "none";
+            }
+        }
+        document.getElementById('camBtnSide').onclick = toggleCamera;
+
+        function updateHUD() {
+            const d = new Date();
+            document.getElementById('date-display').innerText = d.toLocaleDateString();
+            document.getElementById('time-display').innerText = d.toLocaleTimeString();
+            if (navigator.getBattery) navigator.getBattery().then(b => document.getElementById('battery-val').innerText = Math.round(b.level*100)+'%');
+            document.getElementById('dl-val').innerText = (Math.random()*50+10).toFixed(1) + " MB/S";
+            document.getElementById('ul-val').innerText = (Math.random()*15+2).toFixed(1) + " MB/S";
+            document.getElementById('cpu-val').innerText = Math.floor(Math.random()*15+5) + "%";
+            document.getElementById('temp-val').innerText = (36 + Math.random()*4).toFixed(1) + "°C";
+        }
+        setInterval(updateHUD, 1000);
+        updateHUD();
+
+    </script>
+</body>
+</html>

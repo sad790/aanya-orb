@@ -508,6 +508,27 @@
                     dynacast: true,
                 });
 
+                // 🔊 PLAY AANYA AUDIO (CRITICAL)
+                room.on("trackSubscribed", (track) => {
+                    if (track.kind === "audio") {
+                        const audioEl = document.createElement("audio");
+                        audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
+                        audioEl.autoplay = true;
+                        audioEl.muted = false;
+                        audioEl.playsInline = true;   // 🔥 VERY IMPORTANT FOR MOBILE
+                        audioEl.setAttribute("playsinline", "true");
+                        document.body.appendChild(audioEl);
+
+                        audioEl.play().catch(err => {
+                            console.warn("Autoplay blocked, user interaction needed", err);
+                        });
+
+                        console.log("🔊 Aanya audio connected");
+                   }
+                });
+
+
+
                 await room.connect(LIVEKIT_URL, token);
 
                 micTrack = await createLocalAudioTrack();
@@ -526,7 +547,7 @@
             if (!room) connectToAanya();
         });
 
-
+        
       </script>
     
 </body>

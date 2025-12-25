@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>orion AI - Energy Core</title>
+    <title>aanya AI - Energy Core</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -161,6 +161,9 @@
     }
     </script>
     <script type="module">
+
+        const TOKEN_ENDPOINT = "https://aanya-token-server.onrender.com/token";
+        const LIVEKIT_URL = "wss://ai-v55dmwuz.livekit.cloud";
         import * as THREE from 'three';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -480,6 +483,46 @@
         setInterval(updateHUD, 1000);
         updateHUD();
 
+                      // ==================================
+// 🎤 AANYA LIVEKIT CONNECT LOGIC
+// ==================================
+
+let room;
+let micTrack = null;
+
+async function connectToAanya() {
+    try {
+        const res = await fetch(TOKEN_ENDPOINT);
+        const data = await res.json();
+        const token = data.token;
+
+        room = new LivekitClient.Room({
+            adaptiveStream: true,
+            dynacast: true,
+        });
+
+        await room.connect(LIVEKIT_URL, token);
+
+        micTrack = await LivekitClient.createLocalAudioTrack();
+        await room.localParticipant.publishTrack(micTrack);
+
+        document.getElementById("overlay-text").innerText = "AANYA ONLINE";
+
+    } catch (e) {
+        console.error(e);
+        document.getElementById("overlay-text").innerText = "ERROR";
+    }
+}
+
+document.body.addEventListener("click", () => {
+    if (!room) connectToAanya();
+}, { once: true });
+
+
+    </script>
+    
+    <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js">
+        
     </script>
 </body>
 </html>

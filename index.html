@@ -570,26 +570,38 @@
         // 🎤 MIC ON / OFF BUTTON LOGIC
         // ==================================
 
-        const micBtn = document.getElementById("micBtnSide");
-        const micStatus = document.getElementById("mic-status");
-
-        micBtn.onclick = () => {
-            if (!micTrack) {
-                console.warn("⚠️ Mic not ready yet");
+        micBtn.onclick = async () => {
+            if (!room) {
+                alert("Connect to Aanya first");
                 return;
             }
 
+            // 🔥 FIRST TIME MIC REQUEST
+            if (!micTrack) {
+                try {
+                    micTrack = await createLocalAudioTrack();
+                    await room.localParticipant.publishTrack(micTrack);
+                    micStatus.innerText = "MIC: ON";
+                    micBtn.classList.add("active-state");
+                    console.log("🎤 Mic permission granted");
+                    return;
+                } catch (e) {
+                    console.error("❌ Mic permission denied", e);
+                    alert("Mic permission denied");
+                    return;
+                }
+            }
+
+            // 🔁 TOGGLE
             if (micTrack.isMuted) {
                 micTrack.unmute();
                 micStatus.innerText = "MIC: ON";
                 micBtn.classList.add("active-state");
-                console.log("🎤 Mic ON");
-            } else {
+             } else {
                 micTrack.mute();
                 micStatus.innerText = "MIC: OFF";
                 micBtn.classList.remove("active-state");
-                console.log("🔇 Mic OFF");
-            }
+             }
         };
 
         

@@ -547,9 +547,7 @@
                await room.connect(LIVEKIT_URL, token);
 
                // 🎤 mic publish
-               micTrack = await createLocalAudioTrack();
-               await room.localParticipant.publishTrack(micTrack);
- 
+               
                document.getElementById("overlay-text").innerText = "AANYA ONLINE";
                console.log("✅ Connected to LiveKit");
 

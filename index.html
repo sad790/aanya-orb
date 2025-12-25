@@ -488,63 +488,77 @@
         updateHUD();
 
 
-        // ==================================
-        // 🎤 AANYA LIVEKIT CONNECT LOGIC
-        // ==================================
+       // ==================================
+       // 🎤 AANYA LIVEKIT CONNECT LOGIC
+       // ==================================
 
-        const { Room, createLocalAudioTrack } = LivekitClient;
+       const { Room, createLocalAudioTrack } = LivekitClient;
 
-        let room = null;
-        let micTrack = null;
+       let room = null;
+       let micTrack = null;
 
-        async function connectToAanya() {
-            try {
-                const res = await fetch(TOKEN_ENDPOINT);
-                const data = await res.json();
-                const token = data.token;
+       async function connectToAanya() {
+           try {
+               const res = await fetch(TOKEN_ENDPOINT);
+               const data = await res.json();
+               const token = data.token;
 
-                room = new Room({
-                    adaptiveStream: true,
-                    dynacast: true,
-                });
+               room = new Room({
+                   adaptiveStream: true,
+                   dynacast: true,
+               });
 
-                // 🔊 PLAY AANYA AUDIO (CRITICAL)
-                room.on("trackSubscribed", (track) => {
-                    if (track.kind === "audio") {
-                        const audioEl = document.createElement("audio");
-                        audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
-                        audioEl.autoplay = true;
-                        audioEl.muted = false;
-                        audioEl.playsInline = true;   // 🔥 VERY IMPORTANT FOR MOBILE
-                        audioEl.setAttribute("playsinline", "true");
-                        document.body.appendChild(audioEl);
+               // 🔥 expose room to browser console (debugging)
+               window.room = room;
 
-                        audioEl.play().catch(err => {
-                            console.warn("Autoplay blocked, user interaction needed", err);
-                        });
+               // 👤 agent join log
+               room.on("participantConnected", (p) => {
+                   console.log("👤 Participant joined:", p.identity);
+               });
 
-                        console.log("🔊 Aanya audio connected");
-                   }
-                });
+               // 🔊 PLAY AANYA AUDIO
+               room.on("trackSubscribed", (track) => {
+                   if (track.kind === "audio") {
+                       const audioEl = document.createElement("audio");
+                       audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
+                       audioEl.autoplay = true;
+                       audioEl.muted = false;
 
+                       // 🔥 REQUIRED FOR MOBILE
+                       audioEl.playsInline = true;
+                       audioEl.setAttribute("playsinline", "true");
 
+                       document.body.appendChild(audioEl);
 
-                await room.connect(LIVEKIT_URL, token);
+                       audioEl.play().catch(err => {
+                           console.warn("🔕 Autoplay blocked:", err);
+                       });
 
-                micTrack = await createLocalAudioTrack();
-                await room.localParticipant.publishTrack(micTrack);
+                       console.log("🔊 Aanya audio connected");
+                  }
+               });
 
-                document.getElementById("overlay-text").innerText = "AANYA ONLINE";
+               await room.connect(LIVEKIT_URL, token);
 
-            } catch (e) {
-                console.error("LiveKit Error:", e);
-                document.getElementById("overlay-text").innerText = "ERROR";
-            }
-        }
+               // 🎤 mic publish
+               micTrack = await createLocalAudioTrack();
+               await room.localParticipant.publishTrack(micTrack);
+ 
+               document.getElementById("overlay-text").innerText = "AANYA ONLINE";
+               console.log("✅ Connected to LiveKit");
 
-        // click once to connect
-        document.body.addEventListener("click", () => {
-            if (!room) connectToAanya();
+           } catch (e) {
+               console.error("❌ LiveKit Error:", e);
+               document.getElementById("overlay-text").innerText = "ERROR";
+           }    
+       }
+
+       // 👆 USER GESTURE REQUIRED
+       document.body.addEventListener("click", () => {
+           if (!room) {
+               console.log("🖱️ Connecting to Aanya...");
+               connectToAanya();
+           }
         });
 
         

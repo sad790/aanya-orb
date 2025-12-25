@@ -160,6 +160,10 @@
         }
     }
     </script>
+    
+    <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js">
+    </script>
+
     <script type="module">
         
         const TOKEN_ENDPOINT = "https://aanya-token-server.onrender.com/token";
@@ -488,7 +492,9 @@
         // 🎤 AANYA LIVEKIT CONNECT LOGIC
         // ==================================
 
-        let room;
+        const { Room, createLocalAudioTrack } = LivekitClient;
+
+        let room = null;
         let micTrack = null;
 
         async function connectToAanya() {
@@ -497,31 +503,31 @@
                 const data = await res.json();
                 const token = data.token;
 
-                room = new LivekitClient.Room({
+                room = new Room({
                     adaptiveStream: true,
                     dynacast: true,
                 });
 
                 await room.connect(LIVEKIT_URL, token);
 
-                micTrack = await LivekitClient.createLocalAudioTrack();
+                micTrack = await createLocalAudioTrack();
                 await room.localParticipant.publishTrack(micTrack);
 
                 document.getElementById("overlay-text").innerText = "AANYA ONLINE";
 
             } catch (e) {
-                console.error(e);
+                console.error("LiveKit Error:", e);
                 document.getElementById("overlay-text").innerText = "ERROR";
             }
         }
 
+        // click once to connect
         document.body.addEventListener("click", () => {
             if (!room) connectToAanya();
-        }, { once: true });
+        });
 
-        </script>
+
+      </script>
     
-        <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js">        
-        </script>
 </body>
 </html>

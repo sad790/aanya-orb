@@ -152,6 +152,14 @@
 </head>
 <body>
 
+    <script>
+            // 🔐 block access without login
+            if (!localStorage.getItem("aanya_user")) {
+                window.location.href = "login.html";
+            }
+    </script>
+
+
     <div class="top-bar">
         <div class="top-item" id="date-display">-- / -- / ----</div>
         <div class="top-item" id="time-display">00:00:00</div>
@@ -542,7 +550,7 @@
 
 
 // ==================================
-// 🎤 AANYA LIVEKIT + MIC FINAL FIX
+// 🎤 AANYA LIVEKIT + MIC (RESTARTABLE)
 // ==================================
 
 const micBtn = document.getElementById("micBtnSide");
@@ -554,9 +562,12 @@ let room = null;
 let micTrack = null;
 let connecting = false;
 
+// 🔌 CONNECT FUNCTION (REUSABLE)
 async function connectToAanya() {
     if (room || connecting) return;
     connecting = true;
+
+    console.log("🖱️ Connecting to Aanya...");
 
     try {
         const res = await fetch(TOKEN_ENDPOINT);
@@ -569,6 +580,7 @@ async function connectToAanya() {
 
         window.room = room;
 
+        // 🔊 PLAY AANYA AUDIO
         room.on("trackSubscribed", (track) => {
             if (track.kind === "audio") {
                 const audioEl = document.createElement("audio");
@@ -582,20 +594,27 @@ async function connectToAanya() {
         });
 
         await room.connect(LIVEKIT_URL, data.token);
+
         document.getElementById("overlay-text").innerText = "AANYA ONLINE";
         console.log("✅ Connected to LiveKit");
 
     } catch (e) {
         console.error("❌ LiveKit error:", e);
+        room = null;
+    } finally {
+        connecting = false;
     }
 }
 
-// 🔥 FIRST user gesture = connect
+// 🖱️ CLICK ANYWHERE TO CONNECT / RECONNECT
 document.body.addEventListener("click", () => {
     if (!room) connectToAanya();
-}, { once: true });
+});
 
-// 🎤 MIC BUTTON (FINAL – AANYA RESPONSE FIX)
+// ==================================
+// 🎤 MIC BUTTON LOGIC
+// ==================================
+
 micBtn.onclick = async (e) => {
     e.stopPropagation();
 
@@ -604,7 +623,7 @@ micBtn.onclick = async (e) => {
         return;
     }
 
-    // 🔥 FIRST TIME MIC
+    // 🎤 FIRST TIME MIC (ASK PERMISSION)
     if (!micTrack) {
         try {
             micTrack = await createLocalAudioTrack({
@@ -614,9 +633,6 @@ micBtn.onclick = async (e) => {
             });
 
             await room.localParticipant.publishTrack(micTrack);
-
-            // 🔑 THIS LINE IS THE KEY
-            await room.localParticipant.setMicrophoneEnabled(true);
 
             micStatus.innerText = "MIC: ON";
             micBtn.classList.add("active-state");
@@ -643,8 +659,8 @@ micBtn.onclick = async (e) => {
     }
 };
 
-   // ==================================
-// 🔴 AANYA SHUTDOWN / DISCONNECT LOGIC
+ // ==================================
+// 🔴 AANYA LOGOUT / FULL RESET LOGIC
 // ==================================
 
 const shutdownBtn = document.getElementById("shutdownBtnSide");
@@ -652,7 +668,7 @@ const shutdownBtn = document.getElementById("shutdownBtnSide");
 shutdownBtn.onclick = async (e) => {
     e.stopPropagation();
 
-    console.log("🔴 Shutting down Aanya...");
+    console.log("🔴 Logging out user...");
 
     // 🎤 MIC OFF
     if (micTrack) {
@@ -687,11 +703,16 @@ shutdownBtn.onclick = async (e) => {
     // 🔄 RESET FLAGS
     connecting = false;
 
+    // 🔐 CLEAR USER SESSION
+    localStorage.removeItem("aanya_user");
+
     // 🧠 UI RESET
     document.getElementById("overlay-text").innerText = "AANYA OFFLINE";
 
-    console.log("✅ Aanya fully shutdown");
+    // 🔁 GO BACK TO LOGIN PAGE
+    window.location.href = "login.html";
 };
+
 
     </script>
     

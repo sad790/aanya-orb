@@ -64,15 +64,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Send to LiveKit Data Channel
         try {
+            console.log("💬 Attempting to send message:", text);
             const payload = JSON.stringify({ type: "text", message: text });
             const encoder = new TextEncoder();
+            const encoded = encoder.encode(payload);
+
             await window.room.localParticipant.publishData(
-                encoder.encode(payload),
+                encoded,
                 { reliable: true }
             );
+            console.log("✅ Message published to LiveKit data channel");
         } catch (e) {
-            console.error("Failed to send message:", e);
-            addMessage("System: Failed to send message.", "aanya");
+            console.error("❌ Failed to send message:", e);
+            addMessage("System: Failed to send message (See Console).", "aanya");
         }
     }
 
@@ -137,25 +141,30 @@ document.addEventListener("DOMContentLoaded", () => {
     // 📡 LIVEKIT LISTENERS (Added for Text Chat)
     let currentRoom = null;
     setInterval(() => {
-        if (window.room && window.room !== currentRoom) {
-            currentRoom = window.room;
-            console.log("💬 Chat UI: Connected to Room. Listening for data...");
+        if (window.room) { // Check if room exists
+            if (window.room !== currentRoom) {
+                currentRoom = window.room;
+                console.log("💬 Chat UI: Connected to Room. Listening for data...");
 
-            currentRoom.on("dataReceived", (payload, participant) => {
-                try {
-                    const decoder = new TextDecoder();
-                    const strData = decoder.decode(payload);
-                    const data = JSON.parse(strData);
+                currentRoom.on("dataReceived", (payload, participant) => {
+                    console.log("📩 Data received from:", participant ? participant.identity : "System");
+                    try {
+                        const decoder = new TextDecoder();
+                        const strData = decoder.decode(payload);
+                        console.log("📄 Raw data:", strData);
+                        const data = JSON.parse(strData);
 
-                    if (data.type === "text_response" && data.message) {
-                        // Safety: Ensure it's treated as an Aanya message
-                        window.addAanyaMessage(data.message);
+                        if (data.type === "text_response" && data.message) {
+                            // Safety: Ensure it's treated as an Aanya message
+                            window.addAanyaMessage(data.message);
+                        } else {
+                            console.log("ℹ️ Ignored message type:", data.type);
+                        }
+                    } catch (e) {
+                        console.warn("⚠️ Chat UI: Ignored malformed data packet or non-text data", e);
                     }
-                } catch (e) {
-                    // Ignore malformed JSON or binary data not meant for text chat
-                    // console.warn("Chat UI: Ignored malformed data packet");
-                }
-            });
+                });
+            }
         }
     }, 1000);
 });

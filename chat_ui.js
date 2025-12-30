@@ -138,33 +138,94 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 📡 LIVEKIT LISTENERS (Added for Text Chat)
+    // 📡 LIVEKIT INTEGRATION
     let currentRoom = null;
-    setInterval(() => {
-        if (window.room) { // Check if room exists
-            if (window.room !== currentRoom) {
+
+    // EXPORTED FUNCTION: Call this from index.html when room is ready
+    window.initializeChat = (room) => {
+        if (!room) {
+            console.error("❌ Chat Initialization Failed: No room provided.");
+            return;
+        }
+
+        console.log("💬 Chat System Initialized with Room:", room.name);
+        currentRoom = room;
+
+        // Listen for data from other participants (the AI)
+        currentRoom.on("dataReceived", (payload, participant, kind, topic) => {
+            const senderIdentity = participant ? participant.identity : "System";
+            console.log(`📩 Data Received from [${senderIdentity}]:`, payload);
+
+            try {
+                const decoder = new TextDecoder();
+                const strData = decoder.decode(payload);
+                console.log("📄 Decoded Data String:", strData);
+
+                let data;
+                try {
+                    data = JSON.parse(strData);
+                } catch (jsonErr) {
+                    console.warn("⚠️ Received non-JSON text data:", strData);
+                    // Optionally display raw text if it's not JSON?
+                    // addAanyaMessage(strData); 
+                    return;
+                }
+
+                // Handle specific message types
+                if (data.type === "text_response" && data.message) {
+                    window.addAanyaMessage(data.message);
+                }
+                else if (data.message) {
+                    // Fallback: if it has a 'message' field but different type
+                    console.log("ℹ️ Generic message received:", data.message);
+                    window.addAanyaMessage(data.message);
+                }
+                else {
+                    console.log("ℹ️ Unhandled data packet type:", data.type);
+                }
+
+            } catch (e) {
+                console.error("❌ Error ensuring chat message:", e);
+            }
+        });
+    };
+
+    // 📤 SEND MESSAGE (Refined)
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // Use the locally stored currentRoom reference
+        if (!currentRoom || currentRoom.state !== 'connected') {
+            // Fallback to window.room if available (start-up edge case)
+            if (window.room && window.room.state === 'connected') {
                 currentRoom = window.room;
-                console.log("💬 Chat UI: Connected to Room. Listening for data...");
-
-                currentRoom.on("dataReceived", (payload, participant) => {
-                    console.log("📩 Data received from:", participant ? participant.identity : "System");
-                    try {
-                        const decoder = new TextDecoder();
-                        const strData = decoder.decode(payload);
-                        console.log("📄 Raw data:", strData);
-                        const data = JSON.parse(strData);
-
-                        if (data.type === "text_response" && data.message) {
-                            // Safety: Ensure it's treated as an Aanya message
-                            window.addAanyaMessage(data.message);
-                        } else {
-                            console.log("ℹ️ Ignored message type:", data.type);
-                        }
-                    } catch (e) {
-                        console.warn("⚠️ Chat UI: Ignored malformed data packet or non-text data", e);
-                    }
-                });
+            } else {
+                addMessage("System: Connection lost. Reconnecting...", "aanya");
+                console.warn("⚠️ Cannot send: Room not connected.");
+                return;
             }
         }
-    }, 1000);
+
+        // Add User Message
+        addMessage(text, "user");
+        chatInput.value = "";
+
+        // Send to LiveKit Data Channel
+        try {
+            console.log("💬 Sending:", text);
+            const payload = JSON.stringify({ type: "text", message: text });
+            const encoder = new TextEncoder();
+            const encoded = encoder.encode(payload);
+
+            await currentRoom.localParticipant.publishData(
+                encoded,
+                { reliable: true }
+            );
+            console.log("✅ Sent.");
+        } catch (e) {
+            console.error("❌ Send Failed:", e);
+            addMessage("System: Send failed.", "aanya");
+        }
+    }
 });

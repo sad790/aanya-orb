@@ -31,10 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             // Focus input
             setTimeout(() => chatInput.focus(), 100);
-            
+
             // Add initial greeting if empty
             if (chatMessages.children.length === 0) {
-                 setTimeout(() => addAanyaMessage("Link established. Text channel active."), 500);
+                setTimeout(() => addAanyaMessage("Link established. Text channel active."), 500);
             }
 
         } else {
@@ -48,39 +48,54 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 📤 SEND MESSAGE
-    function sendMessage() {
+    async function sendMessage() {
         const text = chatInput.value.trim();
         if (!text) return;
+
+        // Check connection
+        if (!window.room || window.room.state !== 'connected') {
+            addMessage("System: Please connect to Aanya first.", "aanya");
+            return;
+        }
 
         // Add User Message
         addMessage(text, "user");
         chatInput.value = "";
 
-        // Simulate minimal Aanya Echo (Optional, can be removed if strictly no-op)
-        // keeping it purely text storage for now as requested, but user mentioned "Aanya messages aligned left".
-        // I'll add a dummy response for 'help' or just leave it manual.
+        // Send to LiveKit Data Channel
+        try {
+            const payload = JSON.stringify({ type: "text", message: text });
+            const encoder = new TextEncoder();
+            await window.room.localParticipant.publishData(
+                encoder.encode(payload),
+                { reliable: true }
+            );
+        } catch (e) {
+            console.error("Failed to send message:", e);
+            addMessage("System: Failed to send message.", "aanya");
+        }
     }
 
     // ➕ ADD MESSAGE TO DOM
     function addMessage(text, sender) {
         const msgDiv = document.createElement("div");
         msgDiv.classList.add("chat-message", sender);
-        
+
         // Timestamp
         const timeSpan = document.createElement("span");
         timeSpan.classList.add("msg-time");
         const now = new Date();
-        timeSpan.innerText = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-        
+        timeSpan.innerText = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
         const textSpan = document.createElement("span");
         textSpan.innerText = text;
 
         if (sender === 'user') {
-             msgDiv.appendChild(textSpan);
-             msgDiv.appendChild(timeSpan);
+            msgDiv.appendChild(textSpan);
+            msgDiv.appendChild(timeSpan);
         } else {
-             msgDiv.appendChild(timeSpan);
-             msgDiv.appendChild(textSpan);
+            msgDiv.appendChild(timeSpan);
+            msgDiv.appendChild(textSpan);
         }
 
         chatMessages.appendChild(msgDiv);
@@ -118,4 +133,29 @@ document.addEventListener("DOMContentLoaded", () => {
             toggleChat(true);
         }
     });
+
+    // 📡 LIVEKIT LISTENERS (Added for Text Chat)
+    let currentRoom = null;
+    setInterval(() => {
+        if (window.room && window.room !== currentRoom) {
+            currentRoom = window.room;
+            console.log("💬 Chat UI: Connected to Room. Listening for data...");
+
+            currentRoom.on("dataReceived", (payload, participant) => {
+                try {
+                    const decoder = new TextDecoder();
+                    const strData = decoder.decode(payload);
+                    const data = JSON.parse(strData);
+
+                    if (data.type === "text_response" && data.message) {
+                        // Safety: Ensure it's treated as an Aanya message
+                        window.addAanyaMessage(data.message);
+                    }
+                } catch (e) {
+                    // Ignore malformed JSON or binary data not meant for text chat
+                    // console.warn("Chat UI: Ignored malformed data packet");
+                }
+            });
+        }
+    }, 1000);
 });

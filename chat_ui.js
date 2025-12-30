@@ -151,6 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("💬 Chat System Initialized with Room:", room.name);
         currentRoom = room;
 
+        // 🔍 DEBUG: Log who else is in the room
+        console.log("👥 Connected Participants:");
+        room.remoteParticipants.forEach(p => {
+            console.log(`   - ${p.identity} (${p.sid})`);
+        });
+
         // Listen for data from other participants (the AI)
         currentRoom.on("dataReceived", (payload, participant, kind, topic) => {
             const senderIdentity = participant ? participant.identity : "System";
@@ -214,15 +220,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Send to LiveKit Data Channel
         try {
             console.log("💬 Sending:", text);
-            const payload = JSON.stringify({ type: "text", message: text });
+            const payload = JSON.stringify({ type: "chat", message: text }); // Changed type to 'chat' just in case
             const encoder = new TextEncoder();
             const encoded = encoder.encode(payload);
 
+            // 🌟 CRITICAL FIX: Add a specific topic. 
+            // Many LiveKit Agents listen on "lk-chat-topic" or "chat".
             await currentRoom.localParticipant.publishData(
                 encoded,
-                { reliable: true }
+                { reliable: true, topic: "lk-chat-topic" }
             );
-            console.log("✅ Sent.");
+            console.log("✅ Sent on topic 'lk-chat-topic'.");
         } catch (e) {
             console.error("❌ Send Failed:", e);
             addMessage("System: Send failed.", "aanya");

@@ -913,6 +913,13 @@
                 document.getElementById("overlay-text").innerText = "AANYA ONLINE";
                 console.log("✅ Connected to LiveKit");
 
+                // 💬 INIT CHAT (New)
+                if (window.initializeChat) {
+                    window.initializeChat(room);
+                } else {
+                    console.warn("⚠️ Chat UI script not loaded yet.");
+                }
+
             } catch (e) {
                 console.error("❌ LiveKit error:", e);
                 room = null;

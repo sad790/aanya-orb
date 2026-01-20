@@ -1,11 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AANYA | QUANTUM ACCESS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --neon: #00f2ff;
@@ -17,7 +19,7 @@
             margin: 0;
             height: 100vh;
             background-color: var(--bg-dark);
-            background-image: 
+            background-image:
                 linear-gradient(var(--neon-dim) 1px, transparent 1px),
                 linear-gradient(90deg, var(--neon-dim) 1px, transparent 1px);
             background-size: 50px 50px;
@@ -34,7 +36,10 @@
         body::after {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: radial-gradient(circle, transparent 20%, var(--bg-dark) 80%);
             pointer-events: none;
         }
@@ -145,77 +150,130 @@
         }
 
         @keyframes glitch-glow {
-            0%, 100% { box-shadow: 0 0 20px var(--neon-dim); }
-            50% { box-shadow: 0 0 40px var(--neon); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px var(--neon-dim);
+            }
+
+            50% {
+                box-shadow: 0 0 40px var(--neon);
+            }
         }
 
         /* Subtle Scanline Effect */
         .overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0) 100%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
             background-size: 100% 4px;
             pointer-events: none;
             z-index: 10;
         }
     </style>
 </head>
+
 <body>
 
-<div class="overlay"></div>
+    <div class="overlay"></div>
 
-<div class="interface-container">
-    <div class="login-card">
-        <span class="corner-tag" style="top: 15px; left: 40px;">SYS_ID: 884-A</span>
-        <span class="corner-tag" style="top: 15px; right: 40px;">SECURE_LINK</span>
-        
-        <h2>AANYA</h2>
-        <span class="status-line">INITIALIZING NEURAL LINK...</span>
-        
-        <div class="input-wrapper">
-            <input type="text" id="username" placeholder="IDENT_USER" autocomplete="off">
-        </div>
-        
-        <button onclick="login()">ENTER SYSTEM</button>
-        
-        <div style="margin-top: 25px; font-size: 0.6rem; opacity: 0.4;">
-            ESTABLISHING ENCRYPTED CONNECTION... [OK]
+    <div class="interface-container">
+        <div class="login-card">
+            <span class="corner-tag" style="top: 15px; left: 40px;">SYS_ID: 884-A</span>
+            <span class="corner-tag" style="top: 15px; right: 40px;">SECURE_LINK</span>
+
+            <h2>AANYA</h2>
+            <span class="status-line">INITIALIZING NEURAL LINK...</span>
+
+            <div class="input-wrapper">
+                <input type="text" id="username" placeholder="IDENT_USER" autocomplete="off">
+            </div>
+
+            <div class="input-wrapper">
+                <input type="text" id="ai_name" placeholder="AI_DESIGNATION" autocomplete="off">
+            </div>
+
+            <div class="input-wrapper">
+                <select id="ai_voice" style="
+                background: transparent;
+                border: none;
+                border-bottom: 2px solid var(--neon-dim);
+                color: #fff;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.1rem;
+                padding: 10px;
+                width: 270px;
+                text-align: center;
+                outline: none;
+                cursor: pointer;
+            ">
+                    <option value="Leda" style="background:#000;">VOICE: LEDA (FEMALE)</option>
+                    <option value="Aria" style="background:#000;">VOICE: ARIA (FEMALE)</option>
+                    <option value="Nova" style="background:#000;">VOICE: NOVA (FEMALE)</option>
+                    <option value="Puck" style="background:#000;">VOICE: PUCK (MALE)</option>
+                    <option value="Kore" style="background:#000;">VOICE: KORE (FEMALE)</option>
+                    <option value="Fenrir" style="background:#000;">VOICE: FENRIR (MALE)</option>
+                </select>
+            </div>
+
+            <button onclick="login()">ENTER SYSTEM</button>
+
+            <div style="margin-top: 25px; font-size: 0.6rem; opacity: 0.4;">
+                ESTABLISHING ENCRYPTED CONNECTION... [OK]
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // ✅ Keep your core logic
-    if (localStorage.getItem("aanya_user")) {
-        window.location.href = "index.html";
-    }
-
-    function login() {
-        const nameInput = document.getElementById("username");
-        const name = nameInput.value.trim();
-        
-        if (!name) {
-            nameInput.style.borderBottomColor = "red";
-            return;
+    <script>
+        // ✅ Keep your core logic
+        if (localStorage.getItem("aanya_user")) {
+            window.location.href = "index.html";
         }
 
-        localStorage.setItem("aanya_user", name);
-        
-        // Classic "Success" effect
-        const btn = document.querySelector('button');
-        btn.innerText = "LINK ESTABLISHED";
-        btn.style.background = "#fff";
-        
-        setTimeout(() => {
-            window.location.href = "index.html";
-        }, 800);
-    }
+        function login() {
+            const nameInput = document.getElementById("username");
+            const aiNameInput = document.getElementById("ai_name");
+            const voiceInput = document.getElementById("ai_voice");
 
-    // Enter key support
-    document.getElementById("username").addEventListener("keyup", (e) => {
-        if (e.key === "Enter") login();
-    });
-</script>
+            const name = nameInput.value.trim();
+            const aiName = aiNameInput.value.trim();
+            const voice = voiceInput.value;
+
+            if (!name) {
+                nameInput.style.borderBottomColor = "red";
+                return;
+            }
+            if (!aiName) {
+                aiNameInput.style.borderBottomColor = "red";
+                return;
+            }
+
+            localStorage.setItem("aanya_user", name);
+            localStorage.setItem("aanya_ai_name", aiName);
+            localStorage.setItem("aanya_voice", voice);
+
+            // Classic "Success" effect
+            const btn = document.querySelector('button');
+            btn.innerText = "LINK ESTABLISHED";
+            btn.style.background = "#fff";
+
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 800);
+        }
+
+        // Enter key support
+        document.getElementById("username").addEventListener("keyup", (e) => {
+            if (e.key === "Enter") login();
+        });
+        document.getElementById("ai_name").addEventListener("keyup", (e) => {
+            if (e.key === "Enter") login();
+        });
+    </script>
 
 </body>
+
 </html>

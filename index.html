@@ -1,6 +1,6 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,6 @@
             font-family: 'Orbitron', sans-serif;
             color: #33ffff;
         }
-
         canvas {
             display: block;
         }
@@ -36,7 +35,6 @@
             z-index: 100;
             pointer-events: none;
         }
-
         .top-item {
             background: rgba(0, 255, 255, 0.05);
             backdrop-filter: blur(4px);
@@ -71,13 +69,8 @@
             z-index: 10;
         }
 
-        .hud-column {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            pointer-events: auto;
-        }
-
+        .hud-column { display: flex; flex-direction: column; gap: 20px; pointer-events: auto; }
+        
         .hud-item {
             display: inline-block;
             background: rgba(0, 255, 255, 0.02);
@@ -88,41 +81,15 @@
             width: fit-content;
         }
 
-        .hud-item.clickable {
-            cursor: pointer;
-        }
+        .hud-item.clickable { cursor: pointer; }
+        .hud-item.clickable:hover { background: rgba(0, 255, 255, 0.1); }
+        .hud-item.active-state { border-left-color: #ffffff; background: rgba(0, 255, 255, 0.15); }
 
-        .hud-item.clickable:hover {
-            background: rgba(0, 255, 255, 0.1);
-        }
-
-        .hud-item.active-state {
-            border-left-color: #ffffff;
-            background: rgba(0, 255, 255, 0.15);
-        }
-
-        .right-column {
-            align-items: flex-end;
-        }
-
-        .right-column .hud-item {
-            border-left: none;
-            border-right: 2px solid #33ffff;
-            text-align: right;
-        }
-
-        .hud-label {
-            font-size: 0.55em;
-            color: #00aaff;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-            opacity: 0.8;
-        }
-
-        .hud-value {
-            font-size: 1em;
-            text-shadow: 0 0 8px #00ffff;
-        }
+        .right-column { align-items: flex-end; }
+        .right-column .hud-item { border-left: none; border-right: 2px solid #33ffff; text-align: right; }
+        
+        .hud-label { font-size: 0.55em; color: #00aaff; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8; }
+        .hud-value { font-size: 1em; text-shadow: 0 0 8px #00ffff; }
 
         /* --- CAMERA NEURAL SIGHT --- */
         #camera-feed-container {
@@ -132,84 +99,65 @@
             width: 200px;
             height: 120px;
             border: 1px solid rgba(51, 255, 255, 0.5);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             display: none;
             overflow: hidden;
             z-index: 150;
         }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(1.1) contrast(1.1);
-            opacity: 0.7;
-        }
-
+        video { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.1) contrast(1.1); opacity: 0.7; }
+        
         /* ================================
    🔴 CLEAN NEON RED SHUTDOWN BUTTON
 ================================ */
 
-        #shutdownBtnSide {
-            border-left: 2px solid #ff1a1a;
-            background: rgba(255, 0, 0, 0.05);
-            box-shadow:
-                0 0 4px rgba(255, 0, 0, 0.35),
-                inset 0 0 6px rgba(255, 0, 0, 0.25);
-        }
+#shutdownBtnSide {
+    border-left: 2px solid #ff1a1a;
+    background: rgba(255, 0, 0, 0.05);
+    box-shadow:
+        0 0 4px rgba(255, 0, 0, 0.35),
+        inset 0 0 6px rgba(255, 0, 0, 0.25);
+}
 
-        /* RIGHT HUD SUPPORT */
-        .right-column #shutdownBtnSide {
-            border-right: 2px solid #ff1a1a;
-        }
+/* RIGHT HUD SUPPORT */
+.right-column #shutdownBtnSide {
+    border-right: 2px solid #ff1a1a;
+}
 
-        /* HOVER – SOFT GLOW ONLY */
-        #shutdownBtnSide:hover {
-            background: rgba(255, 0, 0, 0.12);
-            box-shadow:
-                0 0 10px rgba(255, 0, 0, 0.55),
-                inset 0 0 8px rgba(255, 0, 0, 0.35);
-        }
+/* HOVER – SOFT GLOW ONLY */
+#shutdownBtnSide:hover {
+    background: rgba(255, 0, 0, 0.12);
+    box-shadow:
+        0 0 10px rgba(255, 0, 0, 0.55),
+        inset 0 0 8px rgba(255, 0, 0, 0.35);
+}
 
-        /* LABEL (SYSTEM) */
-        #shutdownBtnSide .hud-label {
-            color: #ff6b6b;
-            font-size: 0.5em;
-            /* slightly smaller */
-            letter-spacing: 0.25em;
-        }
+/* LABEL (SYSTEM) */
+#shutdownBtnSide .hud-label {
+    color: #ff6b6b;
+    font-size: 0.5em;   /* slightly smaller */
+    letter-spacing: 0.25em;
+}
 
-        /* VALUE (SHUTDOWN TEXT) */
-        #shutdownBtnSide .hud-value {
-            color: #ffffff;
-            font-size: 0.65em;
-            /* 🔥 smaller shutdown text */
-            text-shadow:
-                0 0 4px #ff1a1a,
-                0 0 10px #ff1a1a;
-        }
-    </style>
-</head>
-
-<body>
+/* VALUE (SHUTDOWN TEXT) */
+#shutdownBtnSide .hud-value {
+    color: #ffffff;
+    font-size: 0.65em;   /* 🔥 smaller shutdown text */
+    text-shadow:
+        0 0 4px #ff1a1a,
+        0 0 10px #ff1a1a;
+}
 
    
+    </style>
+</head>
+<body>
 
     <script>
-        // 🔐 block access without login
-        const validUser = localStorage.getItem("aanya_user");
-        if (!validUser) {
-            window.location.href = "login.html";
-        }
-
-        // Set dynamic AI Name
-        const aiName = localStorage.getItem("aanya_ai_name") || "AANYA";
-
-        window.onload = () => {
-            document.getElementById("overlay-text").innerText = aiName + " OFFLINE";
-            document.title = aiName + " | QUANTUM ACCESS";
-        };
+            // 🔐 block access without login
+            if (!localStorage.getItem("aanya_user")) {
+                window.location.href = "login.html";
+            }
     </script>
 
 
@@ -272,12 +220,12 @@
         }
     }
     </script>
-
+    
     <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js">
     </script>
 
     <script type="module">
-
+        
         const TOKEN_ENDPOINT = "https://aanya-token-server-1.onrender.com/token";
         const LIVEKIT_URL = "wss://ai-v55dmwuz.livekit.cloud";
         import * as THREE from 'three';
@@ -287,7 +235,7 @@
         import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
 
 
-
+        
         let scene, camera, renderer, composer;
         let particles, particleData, energyArcs, centralCore;
         let contentGroup; // Group for all visual elements for parallax effect
@@ -304,7 +252,7 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
-
+            
             contentGroup = new THREE.Group();
             scene.add(contentGroup);
 
@@ -395,7 +343,7 @@
                 const midRadius2 = (startRadius + endRadius) / 2 + (Math.random() - 0.5) * 8;
                 const midAngle1 = startAngle + (endAngle - startAngle) * 0.33;
                 const midAngle2 = startAngle + (endAngle - startAngle) * 0.66;
-
+                
                 const midZ1 = (Math.random() - 0.5) * 10;
                 const midZ2 = (Math.random() - 0.5) * 10;
 
@@ -409,7 +357,7 @@
                 const tubeRadius = 0.03; // Thinner arcs
                 const geometry = new THREE.TubeGeometry(curve, 64, tubeRadius, 8, false);
                 const mixedColor = color1.clone().lerp(color2, Math.random());
-
+                
                 const baseOpacity = 0.1 + Math.random() * 0.25;
                 const material = new THREE.MeshBasicMaterial({
                     color: mixedColor,
@@ -418,7 +366,7 @@
                     blending: THREE.AdditiveBlending
                 });
                 const arc = new THREE.Mesh(geometry, material);
-
+                
                 arc.userData.baseOpacity = baseOpacity;
                 arc.userData.flickerSpeed = Math.random() * 2 + 1; // For flickering effect
 
@@ -428,7 +376,7 @@
             }
             contentGroup.add(energyArcs);
         }
-
+        
         function createCentralCore() {
             centralCore = new THREE.Group();
             const coreGeo = new THREE.SphereGeometry(1.5, 32, 32);
@@ -446,13 +394,13 @@
         }
 
         function onMouseDown() {
-            const shockwaveStrength = 0.5;
-            particleData.forEach(p => {
+             const shockwaveStrength = 0.5;
+             particleData.forEach(p => {
                 const directionFromCenter = p.position.clone().normalize();
                 p.velocity.add(directionFromCenter.multiplyScalar(shockwaveStrength));
             });
         }
-
+        
         function onMouseMove(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
@@ -463,14 +411,14 @@
 
             const time = Date.now() * 0.0005;
             const positions = particles.geometry.attributes.position.array;
-
+            
             const pullStrength = 0.0002;
             const noiseScale = 0.1;
             const noiseSpeed = 0.005;
             const noiseScale2 = 0.8;
             const noiseSpeed2 = 0.02;
             const orbitStrength = 0.004;
-            const maxRadius = 16;
+            const maxRadius = 16; 
             const containmentStrength = 0.01;
             const orbitAxis = new THREE.Vector3(0, 0, 1);
 
@@ -484,7 +432,7 @@
                     const noiseVecY1 = noise.noise3d(pos.y * noiseScale, pos.z * noiseScale, time * noiseSpeed) * noiseSpeed;
                     const noiseVecZ1 = noise.noise3d(pos.z * noiseScale, pos.x * noiseScale, time * noiseSpeed) * noiseSpeed;
                     const noiseForce1 = new THREE.Vector3(noiseVecX1, noiseVecY1, noiseVecZ1);
-
+                    
                     const noiseVecX2 = noise.noise3d(pos.x * noiseScale2 + 100, pos.y * noiseScale2, time * noiseSpeed2) * noiseSpeed2 * 0.25;
                     const noiseVecY2 = noise.noise3d(pos.y * noiseScale2 + 200, pos.z * noiseScale2, time * noiseSpeed2) * noiseSpeed2 * 0.25;
                     const noiseVecZ2 = noise.noise3d(pos.z * noiseScale2 + 300, pos.x * noiseScale2, time * noiseSpeed2) * noiseSpeed2 * 0.25;
@@ -511,7 +459,7 @@
                 }
             }
             particles.geometry.attributes.position.needsUpdate = true;
-
+            
             energyArcs.children.forEach(arc => {
                 // Rotation
                 arc.rotation.x += arc.userData.rotationSpeed.x;
@@ -525,12 +473,12 @@
 
             const pulse = 1 + Math.sin(time * 2.5) * 0.1; // Faster "breathing" effect
             centralCore.scale.set(pulse, pulse, pulse);
-
+            
             camera.position.x = Math.sin(time * 0.2) * 5;
             camera.position.y = Math.sin(time * 0.3) * 3;
             camera.position.z = 25 + Math.cos(time * 0.2) * 5;
             camera.lookAt(scene.position);
-
+            
             // Parallax effect
             contentGroup.rotation.y += (mouse.x * 0.2 - contentGroup.rotation.y) * 0.02;
             contentGroup.rotation.x += (mouse.y * 0.2 - contentGroup.rotation.x) * 0.02;
@@ -544,7 +492,7 @@
 
         // 🌟 ESC key closes orb manually
         document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
+            if(event.key === "Escape"){
                 window.close(); // closes the orb window
             }
         });
@@ -590,206 +538,199 @@
             const d = new Date();
             document.getElementById('date-display').innerText = d.toLocaleDateString();
             document.getElementById('time-display').innerText = d.toLocaleTimeString();
-            if (navigator.getBattery) navigator.getBattery().then(b => document.getElementById('battery-val').innerText = Math.round(b.level * 100) + '%');
-            document.getElementById('dl-val').innerText = (Math.random() * 50 + 10).toFixed(1) + " MB/S";
-            document.getElementById('ul-val').innerText = (Math.random() * 15 + 2).toFixed(1) + " MB/S";
-            document.getElementById('cpu-val').innerText = Math.floor(Math.random() * 15 + 5) + "%";
-            document.getElementById('temp-val').innerText = (36 + Math.random() * 4).toFixed(1) + "°C";
+            if (navigator.getBattery) navigator.getBattery().then(b => document.getElementById('battery-val').innerText = Math.round(b.level*100)+'%');
+            document.getElementById('dl-val').innerText = (Math.random()*50+10).toFixed(1) + " MB/S";
+            document.getElementById('ul-val').innerText = (Math.random()*15+2).toFixed(1) + " MB/S";
+            document.getElementById('cpu-val').innerText = Math.floor(Math.random()*15+5) + "%";
+            document.getElementById('temp-val').innerText = (36 + Math.random()*4).toFixed(1) + "°C";
         }
         setInterval(updateHUD, 1000);
         updateHUD();
 
+        
 
 
+// ==================================
+// 🎤 AANYA LIVEKIT + MIC (RESTARTABLE)
+// ==================================
 
-        // ==================================
-        // 🎤 AANYA LIVEKIT + MIC (RESTARTABLE)
-        // ==================================
+const micBtn = document.getElementById("micBtnSide");
+const micStatus = document.getElementById("mic-status");
 
-        const micBtn = document.getElementById("micBtnSide");
-        const micStatus = document.getElementById("mic-status");
+const { Room, createLocalAudioTrack } = LivekitClient;
 
-        const { Room, createLocalAudioTrack } = LivekitClient;
+let room = null;
+let micTrack = null;
+let connecting = false;
 
-        let room = null;
-        let micTrack = null;
-        let connecting = false;
+// 🔌 CONNECT FUNCTION (REUSABLE)
+async function connectToAanya() {
+    if (room || connecting) return;
+    connecting = true;
 
-        // 🔌 CONNECT FUNCTION (REUSABLE)
-        async function connectToAanya() {
-            if (room || connecting) return;
-            connecting = true;
+    console.log("🖱️ Connecting to Aanya...");
 
-            console.log("🖱️ Connecting to Aanya...");
+    try {
+        const userId = localStorage.getItem("aanya_user");
 
-            try {
-                const userId = localStorage.getItem("aanya_user");
-                const aiName = localStorage.getItem("aanya_ai_name") || "Aanya";
-                const aiVoice = localStorage.getItem("aanya_voice") || "Leda";
+        if (!userId) {
+            alert("Please login first");
+            window.location.href = "login.html";
+         return;
+         }
 
-                if (!userId) {
-                    alert("Please login first");
-                    window.location.href = "login.html";
-                    return;
-                }
+            const res = await fetch(`${TOKEN_ENDPOINT}?user_id=${encodeURIComponent(userId)}`);
+            const data = await res.json();
 
-                // Encode Composite Identity: User#AI#Voice
-                const compositeIdentity = `${userId}#${aiName}#${aiVoice}`;
-
-                // Pass this as user_id to Token server (assuming token server uses this as identity)
-                const res = await fetch(`${TOKEN_ENDPOINT}?user_id=${encodeURIComponent(compositeIdentity)}`);
-                const data = await res.json();
-
-
+        
 
                 room = new Room({
                     adaptiveStream: true,
                     dynacast: true,
-                });
+                 });
 
-                window.room = room;
+                 window.room = room;
 
-                // 🔊 PLAY AANYA AUDIO
-                room.on("trackSubscribed", (track) => {
-                    if (track.kind === "audio") {
-                        const audioEl = document.createElement("audio");
-                        audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
-                        audioEl.autoplay = true;
-                        audioEl.playsInline = true;
-                        document.body.appendChild(audioEl);
-                        audioEl.play().catch(() => { });
-                        console.log("🔊 Aanya audio connected");
-                    }
-                });
-
-                await room.connect(data.url, data.token);
-
-                document.getElementById("overlay-text").innerText = (localStorage.getItem("aanya_user") || "USER") + " LINKED";
-                console.log("✅ Connected to LiveKit");
-
-            } catch (e) {
-                console.error("❌ LiveKit error:", e);
-                room = null;
-            } finally {
-                connecting = false;
+        // 🔊 PLAY AANYA AUDIO
+        room.on("trackSubscribed", (track) => {
+            if (track.kind === "audio") {
+                const audioEl = document.createElement("audio");
+                audioEl.srcObject = new MediaStream([track.mediaStreamTrack]);
+                audioEl.autoplay = true;
+                audioEl.playsInline = true;
+                document.body.appendChild(audioEl);
+                audioEl.play().catch(() => {});
+                console.log("🔊 Aanya audio connected");
             }
-        }
+        });
 
-        // 🖱️ CLICK ANYWHERE TO CONNECT / RECONNECT
-        document.body.addEventListener("click", () => {
-            if (!room && !connecting) {
-                connectToAanya();
-            }
-        }, { once: true });
+        await room.connect(data.url, data.token);
 
+        document.getElementById("overlay-text").innerText = "AANYA ONLINE";
+        console.log("✅ Connected to LiveKit");
 
-        // ==================================
-        // 🎤 MIC BUTTON LOGIC
-        // ==================================
+    } catch (e) {
+        console.error("❌ LiveKit error:", e);
+        room = null;
+    } finally {
+        connecting = false;
+    }
+}
 
-        micBtn.onclick = async (e) => {
-            e.stopPropagation();
-
-            if (!room) {
-                alert("Connect first");
-                return;
-            }
-
-            // 🎤 FIRST TIME MIC (ASK PERMISSION)
-            if (!micTrack) {
-                try {
-                    micTrack = await createLocalAudioTrack({
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    });
-
-                    await room.localParticipant.publishTrack(micTrack);
-                    await room.localParticipant.setMicrophoneEnabled(true);
+// 🖱️ CLICK ANYWHERE TO CONNECT / RECONNECT
+document.body.addEventListener("click", () => {
+    if (!room && !connecting) {
+        connectToAanya();
+    }
+}, { once: true });
 
 
-                    micStatus.innerText = "MIC: ON";
-                    micBtn.classList.add("active-state");
+// ==================================
+// 🎤 MIC BUTTON LOGIC
+// ==================================
 
-                    console.log("🎤 Mic LIVE – Aanya can hear you");
-                    return;
+micBtn.onclick = async (e) => {
+    e.stopPropagation();
 
-                } catch (err) {
-                    console.error(err);
-                    alert("Mic permission denied");
-                    return;
-                }
-            }
+    if (!room) {
+        alert("Connect first");
+        return;
+    }
 
-            // 🔁 TOGGLE MIC
-            if (micTrack.isMuted) {
-                micTrack.unmute();
-                micStatus.innerText = "MIC: ON";
-                micBtn.classList.add("active-state");
-            } else {
-                micTrack.mute();
-                micStatus.innerText = "MIC: OFF";
-                micBtn.classList.remove("active-state");
-            }
-        };
-
-        // ==================================
-        // 🔴 AANYA LOGOUT / FULL RESET LOGIC
-        // ==================================
-
-        const shutdownBtn = document.getElementById("shutdownBtnSide");
-
-        shutdownBtn.onclick = async (e) => {
-            e.stopPropagation();
-
-            console.log("🔴 Logging out user...");
-
-            // 🎤 MIC OFF
-            if (micTrack) {
-                micTrack.stop();
-                micTrack = null;
-                micStatus.innerText = "MIC: OFF";
-                micBtn.classList.remove("active-state");
-            }
-
-            // 📷 CAMERA OFF
-            if (camStream) {
-                camStream.getTracks().forEach(t => t.stop());
-                camStream = null;
-                document.getElementById("cam-status").innerText = "CAM: OFF";
-                document.getElementById("camBtnSide").classList.remove("active-state");
-                document.getElementById("camera-feed-container").style.display = "none";
-            }
-
-            // 🔊 REMOVE ALL AUDIO ELEMENTS
-            document.querySelectorAll("audio").forEach(a => {
-                a.pause();
-                a.srcObject = null;
-                a.remove();
+    // 🎤 FIRST TIME MIC (ASK PERMISSION)
+    if (!micTrack) {
+        try {
+            micTrack = await createLocalAudioTrack({
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
             });
 
-            // 🌐 LIVEKIT DISCONNECT
-            if (room) {
-                room.disconnect();
-                room = null;
-            }
+            await room.localParticipant.publishTrack(micTrack);
+            await room.localParticipant.setMicrophoneEnabled(true);
 
-            // 🔄 RESET FLAGS
-            connecting = false;
 
-            // 🔐 CLEAR USER SESSION
-            localStorage.removeItem("aanya_user");
+            micStatus.innerText = "MIC: ON";
+            micBtn.classList.add("active-state");
 
-            // 🧠 UI RESET
-            document.getElementById("overlay-text").innerText = "AANYA OFFLINE";
+            console.log("🎤 Mic LIVE – Aanya can hear you");
+            return;
 
-            // 🔁 GO BACK TO LOGIN PAGE
-            window.location.href = "login.html";
-        };
+        } catch (err) {
+            console.error(err);
+            alert("Mic permission denied");
+            return;
+        }
+    }
+
+    // 🔁 TOGGLE MIC
+    if (micTrack.isMuted) {
+        micTrack.unmute();
+        micStatus.innerText = "MIC: ON";
+        micBtn.classList.add("active-state");
+    } else {
+        micTrack.mute();
+        micStatus.innerText = "MIC: OFF";
+        micBtn.classList.remove("active-state");
+    }
+};
+
+ // ==================================
+// 🔴 AANYA LOGOUT / FULL RESET LOGIC
+// ==================================
+
+const shutdownBtn = document.getElementById("shutdownBtnSide");
+
+shutdownBtn.onclick = async (e) => {
+    e.stopPropagation();
+
+    console.log("🔴 Logging out user...");
+
+    // 🎤 MIC OFF
+    if (micTrack) {
+        micTrack.stop();
+        micTrack = null;
+        micStatus.innerText = "MIC: OFF";
+        micBtn.classList.remove("active-state");
+    }
+
+    // 📷 CAMERA OFF
+    if (camStream) {
+        camStream.getTracks().forEach(t => t.stop());
+        camStream = null;
+        document.getElementById("cam-status").innerText = "CAM: OFF";
+        document.getElementById("camBtnSide").classList.remove("active-state");
+        document.getElementById("camera-feed-container").style.display = "none";
+    }
+
+    // 🔊 REMOVE ALL AUDIO ELEMENTS
+    document.querySelectorAll("audio").forEach(a => {
+        a.pause();
+        a.srcObject = null;
+        a.remove();
+    });
+
+    // 🌐 LIVEKIT DISCONNECT
+    if (room) {
+        room.disconnect();
+        room = null;
+    }
+
+    // 🔄 RESET FLAGS
+    connecting = false;
+
+    // 🔐 CLEAR USER SESSION
+    localStorage.removeItem("aanya_user");
+
+    // 🧠 UI RESET
+    document.getElementById("overlay-text").innerText = "AANYA OFFLINE";
+
+    // 🔁 GO BACK TO LOGIN PAGE
+    window.location.href = "login.html";
+};
 
 
     </script>
-
+    
 </body>
-
 </html>
